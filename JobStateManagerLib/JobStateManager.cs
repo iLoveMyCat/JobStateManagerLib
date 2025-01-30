@@ -58,7 +58,6 @@ namespace JobStateManagerLib
 
                 if (_nextJobsToExecute.Contains(jobId))
                 {
-                    _nextJobsToExecute.Remove(jobId);
                     if (_jobDependants.ContainsKey(jobId))
                     {
                         foreach(int job in _jobDependants[jobId])
@@ -77,7 +76,16 @@ namespace JobStateManagerLib
         }
         public void SetJobFail(int jobId)
         {
-            throw new NotImplementedException();
+            if (!_jobState.ContainsKey(jobId))
+            {
+                _jobState.Add(jobId, false);
+            }
+            else
+            {
+                _jobState[jobId] = false;
+            }
+
+            _nextJobsToExecute.Remove(jobId);
         }
     }
 }
