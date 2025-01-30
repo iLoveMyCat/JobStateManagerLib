@@ -62,7 +62,10 @@ namespace JobStateManagerLib
                     {
                         foreach(int job in _jobDependants[jobId])
                         {
-                            _nextJobsToExecute.Add(job);
+                            if (!_currentJobs.ContainsKey(job))
+                            {
+                                _nextJobsToExecute.Add(job);
+                            }
                         }
                     }
                 }
@@ -86,6 +89,10 @@ namespace JobStateManagerLib
             }
 
             _nextJobsToExecute.Remove(jobId);
+            foreach(int job in _jobDependants[jobId])
+            {
+                _nextJobsToExecute.Remove(job);
+            }
         }
     }
 }
