@@ -9,7 +9,7 @@ namespace JobStateManagerLib
     public class JobStateManager : IJobDependencyManager
     {
         private readonly Dictionary<int, List<int>> _currentJobs = new Dictionary<int, List<int>>();
-        private readonly List<int> _nextJobsToExecute = new List<int>();
+        private readonly HashSet<int> _nextJobsToExecute = new HashSet<int>();
         public void Init(List<JobInput> jobInputs)
         {
             foreach(JobInput jobInput in jobInputs)

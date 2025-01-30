@@ -23,10 +23,11 @@ namespace JobExecutor
                     new JobInput { Job = 7, DependsOn = 5 },
                     new JobInput { Job = 7, DependsOn = 6 }
             });
-            jobStateManager.GetNextAvailableJobs();
-            jobStateManager.SetJobFail(1);
-            jobStateManager.SetJobSuccessful(2);
-            jobStateManager.GetNextAvailableJobs();
+            Console.Write(string.Join(",", jobStateManager.GetNextAvailableJobs()));
+            //jobStateManager.SetJobFail(1);
+            //jobStateManager.SetJobSuccessful(2);
+            //jobStateManager.GetNextAvailableJobs();
+
         }
     }
 }
