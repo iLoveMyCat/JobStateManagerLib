@@ -8,14 +8,31 @@ namespace JobStateManagerLib
 {
     public class JobStateManager : IJobDependencyManager
     {
-        private readonly Dictionary<int, List<int>> _currentJobs;
+        private readonly Dictionary<int, List<int>> _currentJobs = new Dictionary<int, List<int>>();
+        private readonly List<int> _nextJobsToExecute = new List<int>();
         public void Init(List<JobInput> jobInputs)
         {
-            throw new NotImplementedException();
+            foreach(JobInput jobInput in jobInputs)
+            {
+                if (!_currentJobs.ContainsKey(jobInput.Job))
+                {
+                    _currentJobs.Add(jobInput.Job, new List<int> { jobInput.DependsOn });
+                }
+                else
+                {
+                    _currentJobs[jobInput.Job].Add(jobInput.DependsOn);
+                }
+
+                if (!_currentJobs.ContainsKey(jobInput.DependsOn))
+                {
+                    _nextJobsToExecute.Add(jobInput.DependsOn);
+                }
+        
+            }
         }
         public int[] GetNextAvailableJobs()
         {
-            throw new NotImplementedException();
+            return _nextJobsToExecute.ToArray();
         }
         public void SetJobFail(int jobId)
         {
