@@ -1,70 +1,73 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace JobStateManagerLib
+﻿namespace JobStateManagerLib
 {
     public class JobStateManager : IJobDependencyManager
     {
-        private readonly Dictionary<int, List<int>> _currentJobs = new Dictionary<int, List<int>>();
-        private readonly Dictionary<int, List<int>> _jobDependants = new Dictionary<int, List<int>>();
+        private readonly Dictionary<int, List<int>> _jobToDependencies = new Dictionary<int, List<int>>();
+        private readonly Dictionary<int, List<int>> _jobToDependants = new Dictionary<int, List<int>>();
         private readonly HashSet<int> _nextJobsToExecute = new HashSet<int>();
-        private readonly Dictionary<int, bool?> _jobState = new Dictionary<int, bool?>();
+        private readonly Dictionary<int, bool> _jobSuccess = new Dictionary<int, bool>();
         public void Init(List<JobInput> jobInputs)
         {
-            _currentJobs.Clear();
-            _nextJobsToExecute.Clear();
-            _jobDependants.Clear();
-            _jobState.Clear();
+            ClearState();
 
             foreach (JobInput jobInput in jobInputs)
             {
-                if (!_currentJobs.ContainsKey(jobInput.Job))
+                if (!_jobToDependencies.ContainsKey(jobInput.Job))
                 {
-                    _currentJobs.Add(jobInput.Job, new List<int> { jobInput.DependsOn });
+                    _jobToDependencies.Add(jobInput.Job, new List<int> { jobInput.DependsOn });
                 }
                 else
                 {
-                    _currentJobs[jobInput.Job].Add(jobInput.DependsOn);
+                    _jobToDependencies[jobInput.Job].Add(jobInput.DependsOn);
                 }
 
-                if (!_jobDependants.ContainsKey(jobInput.DependsOn))
+                if (!_jobToDependants.ContainsKey(jobInput.DependsOn))
                 {
-                    _jobDependants.Add(jobInput.DependsOn, new List<int> { jobInput.Job });
+                    _jobToDependants.Add(jobInput.DependsOn, new List<int> { jobInput.Job });
                 }
                 else
                 {
-                    _jobDependants[jobInput.DependsOn].Add(jobInput.Job);
+                    _jobToDependants[jobInput.DependsOn].Add(jobInput.Job);
                 }
 
-                if (!_currentJobs.ContainsKey(jobInput.DependsOn))
+                if (!_jobToDependencies.ContainsKey(jobInput.DependsOn))
                 {
                     _nextJobsToExecute.Add(jobInput.DependsOn);
                 }
-        
+
             }
         }
         public int[] GetNextAvailableJobs()
         {
             return _nextJobsToExecute.ToArray();
         }
-        public void SetJobSuccessful(int jobId)
+        public void SetJobSuccessful(int successJob)
         {
-            if (!_jobState.ContainsKey(jobId))
-            {
-                _jobState.Add(jobId, true);
+            _jobSuccess[successJob] = true;
+            UpdateNextJobs(successJob, true);
+        }
+        public void SetJobFail(int faildJob)
+        {
+            _jobSuccess[faildJob] = false;
+            UpdateNextJobs(faildJob, false);
 
-                if (_nextJobsToExecute.Contains(jobId))
+        }
+        private void UpdateNextJobs(int completedJob, bool success)
+        {
+            // We assume, only available jobs are executed
+            if (_nextJobsToExecute.Contains(completedJob))
+            {
+                _nextJobsToExecute.Remove(completedJob);
+
+                if (success)
                 {
-                    if (_jobDependants.ContainsKey(jobId))
+                    if (_jobToDependants.ContainsKey(completedJob))
                     {
-                        foreach(int job in _jobDependants[jobId])
+                        foreach (int dependantJob in _jobToDependants[completedJob])
                         {
-                            if (!_currentJobs.ContainsKey(job))
+                            if (!HasUnfullfilledDependency(dependantJob))
                             {
-                                _nextJobsToExecute.Add(job);
+                                _nextJobsToExecute.Add(dependantJob);
                             }
                         }
                     }
@@ -72,27 +75,30 @@ namespace JobStateManagerLib
             }
             else
             {
-                _jobState[jobId] = true;
+                Console.WriteLine("Invalid Operation, Job is not available");
+                //throw new InvalidOperationException("Invalid Operation, Job is not available");
             }
-
-            _nextJobsToExecute.Remove(jobId);
         }
-        public void SetJobFail(int jobId)
-        {
-            if (!_jobState.ContainsKey(jobId))
-            {
-                _jobState.Add(jobId, false);
-            }
-            else
-            {
-                _jobState[jobId] = false;
-            }
 
-            _nextJobsToExecute.Remove(jobId);
-            foreach(int job in _jobDependants[jobId])
+        private bool HasUnfullfilledDependency(int targetJob)
+        {
+            foreach (int dependencyJob in _jobToDependencies[targetJob])
             {
-                _nextJobsToExecute.Remove(job);
+                //failed depnedency or unhandled yet
+                if (!_jobSuccess.ContainsKey(dependencyJob) || !_jobSuccess[dependencyJob])
+                {
+                    return true;
+                }
             }
+            return false;
+        }
+
+        private void ClearState()
+        {
+            _jobToDependencies.Clear();
+            _nextJobsToExecute.Clear();
+            _jobToDependants.Clear();
+            _jobSuccess.Clear();
         }
     }
 }

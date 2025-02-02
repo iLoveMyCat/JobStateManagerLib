@@ -20,6 +20,12 @@ namespace JobExecutor
                     new JobInput { Job = 7, DependsOn = 6 }
             };
 
+
+
+
+
+            Console.WriteLine("Expected: Error or detection of cycle");
+            Console.WriteLine(string.Join(",", jobStateManager.GetNextAvailableJobs()));
             // Example #1
             Console.WriteLine("---Example 1");
             jobStateManager.Init(jobInputs);
@@ -36,9 +42,6 @@ namespace JobExecutor
             jobStateManager.Init(jobInputs);
             jobStateManager.SetJobFail(1);
             Console.WriteLine(string.Join(",", jobStateManager.GetNextAvailableJobs()));
-
-            // Example #4
-            Console.WriteLine("---Example 4");
             jobStateManager.Init(jobInputs);
 
             jobStateManager.SetJobFail(1);
@@ -53,23 +56,55 @@ namespace JobExecutor
             Console.WriteLine("Excpected: 7");
             Console.WriteLine("Actual:" + string.Join(",", jobStateManager.GetNextAvailableJobs()));
 
-            // Example #5
-            Console.WriteLine("---Example 5");
             jobStateManager.Init(jobInputs);
 
-            jobStateManager.SetJobFail(4);
-            Console.WriteLine("Excpected: 1,5,6");
-            Console.WriteLine("Actual:" + string.Join(",", jobStateManager.GetNextAvailableJobs()));
-            jobStateManager.SetJobSuccessful(5);
-            jobStateManager.SetJobSuccessful(2);
-            Console.WriteLine("Excpected: 1,6");
-            Console.WriteLine("Actual:" + string.Join(",", jobStateManager.GetNextAvailableJobs()));
-            jobStateManager.SetJobSuccessful(3);
-            Console.WriteLine("Excpected: 1,6");
-            Console.WriteLine("Actual:" + string.Join(",", jobStateManager.GetNextAvailableJobs()));
+         
+
+
+            jobStateManager.Init(jobInputs);
+
+            Console.WriteLine("Expected: 1,5,6");
+            Console.WriteLine("Actual: " + string.Join(",", jobStateManager.GetNextAvailableJobs()));
+
+            jobStateManager.Init(jobInputs);
             jobStateManager.SetJobSuccessful(1);
-            Console.WriteLine("Excpected: 6");
-            Console.WriteLine("Actual:" + string.Join(",", jobStateManager.GetNextAvailableJobs()));
+            Console.WriteLine("Expected: 2,3,5,6");
+            Console.WriteLine("Actual: " + string.Join(",", jobStateManager.GetNextAvailableJobs()));
+
+            jobStateManager.Init(jobInputs);
+            jobStateManager.SetJobSuccessful(1);
+            jobStateManager.SetJobSuccessful(2);
+            jobStateManager.SetJobFail(3); 
+            Console.WriteLine("Expected: 5,6"); 
+            Console.WriteLine("Actual: " + string.Join(",", jobStateManager.GetNextAvailableJobs()));
+
+            jobStateManager.Init(jobInputs);
+            jobStateManager.SetJobSuccessful(1);  
+            jobStateManager.SetJobSuccessful(2);
+            jobStateManager.SetJobSuccessful(3);
+            jobStateManager.SetJobSuccessful(5); 
+            Console.WriteLine("Expected: 4,6");  
+            Console.WriteLine("Actual: " + string.Join(",", jobStateManager.GetNextAvailableJobs()));
+
+            jobStateManager.SetJobSuccessful(4);
+            jobStateManager.SetJobSuccessful(6);
+            Console.WriteLine("Expected: 7,8"); 
+            Console.WriteLine("Actual: " + string.Join(",", jobStateManager.GetNextAvailableJobs()));
+
+            
+            jobStateManager.Init(jobInputs);
+            jobStateManager.SetJobSuccessful(1);
+            jobStateManager.SetJobSuccessful(2);
+            jobStateManager.SetJobSuccessful(3);
+            jobStateManager.SetJobSuccessful(4);
+            jobStateManager.SetJobSuccessful(5);
+            jobStateManager.SetJobSuccessful(6);
+            jobStateManager.SetJobSuccessful(7);
+            jobStateManager.SetJobSuccessful(8);
+            jobStateManager.SetJobSuccessful(9);
+            jobStateManager.SetJobSuccessful(10);
+            Console.WriteLine("Expectd: ");
+            Console.WriteLine("Actual: " + string.Join(",", jobStateManager.GetNextAvailableJobs()));
         }
     }
 }
