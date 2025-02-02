@@ -34,7 +34,13 @@
                 {
                     _nextJobsToExecute.Add(jobInput.DependsOn);
                 }
+            }
 
+            if (IsCircular())
+            {
+                ClearState();
+                Console.WriteLine("Failed To initialize, circular structure detected.");
+                //throw new InvalidOperationException("Failed To initialize, circular structure detected.");
             }
         }
         public int[] GetNextAvailableJobs()
@@ -79,7 +85,6 @@
                 //throw new InvalidOperationException("Invalid Operation, Job is not available");
             }
         }
-
         private bool HasUnfullfilledDependency(int targetJob)
         {
             foreach (int dependencyJob in _jobToDependencies[targetJob])
@@ -92,13 +97,62 @@
             }
             return false;
         }
-
         private void ClearState()
         {
             _jobToDependencies.Clear();
             _nextJobsToExecute.Clear();
             _jobToDependants.Clear();
             _jobSuccess.Clear();
+        }
+        private bool IsCircular()
+        {
+            HashSet<int> checkedJobs = new HashSet<int>();
+            HashSet<int> jobsInProgress = new HashSet<int>();
+
+            foreach (int job in _jobToDependencies.Keys)
+            {
+                if (CheckForLoop(job, checkedJobs, jobsInProgress))
+                {
+                    return true;  
+                }
+            }
+
+            return false; 
+        }
+        private bool CheckForLoop(int currentJob, HashSet<int> checkedJobs, HashSet<int> jobsInProgress)
+        {
+            if (checkedJobs.Contains(currentJob) == false)
+            {
+                checkedJobs.Add(currentJob); 
+                jobsInProgress.Add(currentJob); 
+
+                if (_jobToDependencies.ContainsKey(currentJob))
+                {
+                    List<int> jobDependencies = _jobToDependencies[currentJob];
+
+                    foreach (int dependency in jobDependencies) 
+                    {
+                        if (checkedJobs.Contains(dependency) == false)
+                        {
+                            if (CheckForLoop(dependency, checkedJobs, jobsInProgress))  
+                            {
+                                return true;  
+                            }
+                        }
+                        else if (jobsInProgress.Contains(dependency))  
+                        {
+                            return true; 
+                        }
+                    }
+                }
+            }
+
+            if (jobsInProgress.Contains(currentJob))  
+            {
+                jobsInProgress.Remove(currentJob);
+            }
+
+            return false;  
         }
     }
 }

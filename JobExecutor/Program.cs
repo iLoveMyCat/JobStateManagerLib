@@ -7,7 +7,24 @@ namespace JobExecutor
         static void Main(string[] args)
         {
             JobStateManager jobStateManager = new JobStateManager();
+         
             List<JobInput> jobInputs = new List<JobInput>
+            {
+                    new JobInput { Job = 1, DependsOn = 3 },
+                    new JobInput { Job = 2, DependsOn = 1},
+                    new JobInput { Job = 1, DependsOn = 2 },
+            };
+
+
+
+
+            // Example Circular
+            Console.WriteLine("Excpected: \nFailed To initialize, circular structure detected.");
+            Console.WriteLine("Actual:");
+            jobStateManager.Init(jobInputs);
+            Console.WriteLine(string.Join(",", jobStateManager.GetNextAvailableJobs()));
+
+            jobInputs = new List<JobInput>
             {
                     new JobInput { Job = 2, DependsOn = 1 },
                     new JobInput { Job = 3, DependsOn = 1 },
@@ -19,13 +36,6 @@ namespace JobExecutor
                     new JobInput { Job = 7, DependsOn = 5 },
                     new JobInput { Job = 7, DependsOn = 6 }
             };
-
-
-
-
-
-            Console.WriteLine("Expected: Error or detection of cycle");
-            Console.WriteLine(string.Join(",", jobStateManager.GetNextAvailableJobs()));
             // Example #1
             Console.WriteLine("---Example 1");
             jobStateManager.Init(jobInputs);
